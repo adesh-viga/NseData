@@ -17,7 +17,8 @@ class NseData:
 
     def __init__(self, stock_name):
         self.StockName = stock_name
-        
+    
+    #Gets HIsatorical data of past one year for the given stock
     def GetHistoricalData(self):
         url = "https://www.nseindia.com/products/content/equities/equities/eq_security.htm"
         br = mechanize.Browser()
@@ -62,34 +63,35 @@ class NseData:
         HDList  = HistoricalData.split(':')
         
         #get Keyword list
-        
         self.KeyWords = HDList[0].split(',')
-        
-        HDList = HDList[1:]
-        
+        #remove the first list, as it is keyword list        
+        HDList = HDList[1:]      
         for i in HDList:
             self.HistoricalData.append(i.split(','))
         print self.KeyWords
         print self.HistoricalData[1]
-    def GetHistoricalDataList(self, key):
+    
+    #Gets data list of a given keyword
+    def GetHistoricalDataList(self, KeyWord):
         DataList =[]
-        index = self.KeyWords.index(key)
+        index = self.KeyWords.index(KeyWord)
         for i in self.HistoricalData:
             if i[self.KeyWords.index("Series")] == "EQ":
                 DataList.append(i[index])
         return DataList
-
-    def GetDataFromDate(self, date, key):
-        index = self.KeyWords.index(key)
+    
+    #Gets data of a keyword on a given date
+    def GetDataOnGivenDate(self, date, KeyWord):
+        index = self.KeyWords.index(KeyWord)
         for i in self.HistoricalData:
             if i[self.KeyWords.index("Date")] == date:
                  return i[index]
         return "NONE"
 
-n= NseData('GEECEE')
+n= NseData('ZEEL')
 n.GetHistoricalData()
 plt.plot(n.GetHistoricalDataList("AveragePrice"))
-print n.GetDataFromDate('23-Nov-2017', 'AveragePrice')
+print n.GetDataOnGivenDate('23-Nov-2017', 'AveragePrice')
 
 
 
