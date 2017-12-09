@@ -8,6 +8,8 @@ Created on Wed Nov 22 21:50:44 2017
 import mechanize 
 from bs4 import BeautifulSoup as bs
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import numpy as np
 
 
 class NseData:
@@ -68,8 +70,8 @@ class NseData:
         HDList = HDList[1:]      
         for i in HDList:
             self.HistoricalData.append(i.split(','))
-        print self.KeyWords
-        print self.HistoricalData[1]
+        #print self.KeyWords
+        #print self.HistoricalData[1]
     
     #Gets data list of a given keyword
     def GetHistoricalDataList(self, KeyWord):
@@ -87,13 +89,45 @@ class NseData:
             if i[self.KeyWords.index("Date")] == date:
                  return i[index]
         return "NONE"
+      
+    #do aroon indicator calculations
+    def Aroon(self, TimeFrame, HighPriceList, LowPriceList):
+        AroonUp=[0]*TimeFrame
+        AroonDown=[0]*TimeFrame
+        #AroonDate=[]
+        x=TimeFrame
+        
+        while (x < len(HighPriceList)):
+            Aroon_up = ((HighPriceList[x-TimeFrame:x].index(max(HighPriceList[x-TimeFrame:x]))))/float(TimeFrame)*100
+            Aroon_down = ((LowPriceList[x-TimeFrame:x].index(min(LowPriceList[x-TimeFrame:x]))))/float(TimeFrame)*100
+            AroonUp.append(Aroon_up)
+            AroonDown.append(Aroon_down)                       
+            x+=1
 
-n= NseData('ZEEL')
+        return AroonUp, AroonDown
+    
+
+n= NseData('SBIN')
 n.GetHistoricalData()
-plt.plot(n.GetHistoricalDataList("AveragePrice"))
-print n.GetDataOnGivenDate('23-Nov-2017', 'AveragePrice')
+#print n.GetDataOnGivenDate('23-Nov-2017', 'AveragePrice')
+hp=n.GetHistoricalDataList("HighPrice")
+lp=n.GetHistoricalDataList("LowPrice")
+u,l = n.Aroon(14, hp,lp)
 
 
+#f, (AvgPricePlot, AroonPlot) = plt.subplots(2, sharex=True)
+#AvgPricePlot.plot(n.GetHistoricalDataList("AveragePrice"))
+#AroonPlot.plot(u)
+#AroonPlot.plot(l)
+
+
+fig = plt.figure(figsize=(8, 6)) 
+gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
+AvgPricePlot = plt.subplot(gs[0])
+AvgPricePlot.plot(n.GetHistoricalDataList("ClosePrice"))
+AroonPlot = plt.subplot(gs[1])
+AroonPlot.plot(u)
+AroonPlot.plot(l)
 
 #Keywards ['Symbol', 'Series', 'Date', 'PrevClose', 'OpenPrice', 'HighPrice', 'LowPrice', 'LastPrice', 'ClosePrice', 'AveragePrice', 'TotalTradedQuantity', 'Turnover', 'No.ofTrades', 'DeliverableQty', '%DlyQttoTradedQty']
 #HistroricalData[1] ['GEECEE', 'EQ', '30-Nov-2016', '128.60', '128.60', '129.75', '124.15', '127.90', '127.40', '126.89', '38211', '4848403.80', '1029', '20556', '53.80']
